@@ -24,9 +24,20 @@ io.on("connection", (socket) => {
     console.log("a user disconnected");
   });
 
+  socket.on("subscribe", (channel) => {
+    console.log("subscribed to ", channel);
+    socket.join(channel);
+    io.to(channel).emit("thought","Hey Baby!");
+  });
+
+  socket.on("unsubscribe", (channel) => {
+    socket.leave(channel);
+  });
+
   socket.onAny((eventName, ...args) => {
+    console.log("onAny ", eventName);
     let message = args[0];
-    socket.emit(eventName, message);
+    io.to("balloon").emit(eventName, message);
   });
 });
 
