@@ -23,6 +23,11 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("a user disconnected");
   });
+
+  socket.onAny((eventName, ...args) => {
+    let message = args[0];
+    socket.emit(eventName, message);
+  });
 });
 
 http.listen(port, () => {
