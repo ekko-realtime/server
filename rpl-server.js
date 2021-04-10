@@ -2,15 +2,14 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 app.use(cors());
-
 const http = require("http").Server(app);
 const io = require("socket.io")(http, {
   cors: {
     origin: "http://localhost:5000",
+    // TODO: Look into what the "GET" and "POST" are doing
     methods: ["GET", "POST"],
   },
 });
-
 const port = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
@@ -18,29 +17,31 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log("a user connected");
+  console.log("Server: User connected");
 
   socket.on("disconnect", () => {
-    console.log("a user disconnected");
+    console.log("Server: User disconnected");
   });
 
   socket.on("subscribe", (channel) => {
-    console.log("subscribed to ", channel);
     socket.join(channel);
-    io.to(channel).emit("thought","Hey Baby!");
+    console.log(`Server: User subscribed to ${channel}`);
+    io.to(channel).emit("info", `Server: User subscribed to ${channel}`);
   });
 
   socket.on("unsubscribe", (channel) => {
     socket.leave(channel);
+    console.log(`Server: User unsubscribed from ${channel}`);
   });
 
-  socket.onAny((eventName, ...args) => {
-    console.log("onAny ", eventName);
-    let message = args[0];
-    io.to("balloon").emit(eventName, message);
+  // Wrapper around socket.io's emit functionality that requires the client to provide a channel
+  socket.on("publish", ({ channel, eventType, data }) => {
+    io.to(channel).emit(eventType, data);
   });
 });
 
 http.listen(port, () => {
-  console.log(`Server started on port ${port}. press Ctrl + C to terminate`);
+  const message = `Server: rpl server started on port ${port}`;
+  const line = new Array(message.length).fill("-").join("");
+  console.log(`${line}\n${message}\n${line}`);
 });
