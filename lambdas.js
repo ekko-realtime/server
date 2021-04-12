@@ -10,12 +10,12 @@ const db = { balloon: "slow" };
 
 const hasLambda = (channel) => db[channel];
 
-const callLambda = async ({ channel, eventType, data }) => {
-  console.log("CALLING LAMBDA:", channel, eventType, data);
+const callLambda = async ({ channel, content }) => {
+  console.log("CALLING LAMBDA:", channel, content);
 
   const params = {
     FunctionName: db[channel],
-    Payload: JSON.stringify({ message: data }),
+    Payload: JSON.stringify({ message: content }),
   };
 
   const result = await lambda.invoke(params).promise();
