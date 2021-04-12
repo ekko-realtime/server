@@ -11,6 +11,7 @@ const io = require("socket.io")(http, {
   },
 });
 const port = process.env.PORT || 3000;
+const Lambdas = require("./lambdas.js");
 
 app.get("/", (req, res) => {
   res.send("ekko-server");
@@ -35,8 +36,16 @@ io.on("connection", (socket) => {
   });
 
   // Wrapper around socket.io's emit functionality that requires the client to provide a channel
-  socket.on("publish", ({ channel, eventType, data }) => {
-    io.to(channel).emit(eventType, data);
+  socket.on("publish", async ({ channel, eventType, data }) => {
+    let responseData = data;
+    console.log("response data", responseData);
+
+    if (Lambdas.hasLambda(channel)) {
+      console.log("has lambda");
+      responseData = await Lambdas.callLambda({ channel, eventType, data });
+    }
+
+    io.to(channel).emit("thought", responseData);
   });
 });
 
