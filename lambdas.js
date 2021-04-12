@@ -18,14 +18,8 @@ const callLambda = async ({ channel, eventType, data }) => {
     Payload: JSON.stringify({ message: data }),
   };
 
-  let lambdaResponse;
   const result = await lambda.invoke(params).promise();
-  // const result = await lambda.invokeAsync(params);
-
   return JSON.parse(result.Payload).body;
-  //     // console.log("RESPONSE", result);
-  //     lambdaResponse = JSON.parse(response.Payload).body;
-  //     // io.emit("thought", );
 };
 
 module.exports = {
