@@ -1,10 +1,10 @@
 {
-  "name": "rpl-server",
+  "name": "ekko-server",
   "version": "1.0.0",
   "description": "",
-  "main": "rpl-server.js",
+  "main": "ekko-server.js",
   "scripts": {
-    "start": "node rpl-server.js",
+    "start": "node ekko-server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

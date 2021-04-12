@@ -1,4 +1,4 @@
-# rpl server
+# ekko server
 
 # TODO
 

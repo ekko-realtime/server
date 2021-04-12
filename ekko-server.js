@@ -13,7 +13,7 @@ const io = require("socket.io")(http, {
 const port = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
-  res.send("rpl-server");
+  res.send("ekko-server");
 });
 
 io.on("connection", (socket) => {
@@ -41,7 +41,7 @@ io.on("connection", (socket) => {
 });
 
 http.listen(port, () => {
-  const message = `Server: rpl server started on port ${port}`;
+  const message = `Server: ekko server started on port ${port}`;
   const line = new Array(message.length).fill("-").join("");
   console.log(`${line}\n${message}\n${line}`);
 });
