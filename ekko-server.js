@@ -24,28 +24,45 @@ io.on("connection", (socket) => {
     console.log("Server: User disconnected");
   });
 
-  socket.on("subscribe", (channel) => {
-    socket.join(channel);
-    console.log(`Server: User subscribed to ${channel}`);
-    io.to(channel).emit("info", `Server: User subscribed to ${channel}`);
+  socket.on("subscribe", ({ channels }) => {
+    channels.forEach((channel) => {
+      socket.join(channel);
+      // TODO add status update functionality (for dev backend server)
+      console.log(`Server: User subscribed to ${channel}`);
+      io.to(channel).emit("info", `Server: User subscribed to ${channel}`);
+    });
   });
 
-  socket.on("unsubscribe", (channel) => {
-    socket.leave(channel);
-    console.log(`Server: User unsubscribed from ${channel}`);
+  socket.on("unsubscribe", ({ channels }) => {
+    channels.forEach((channel) => {
+      socket.leave(channel);
+      // TODO add status update functionality (for dev backend server)
+      io.to(channel).emit("info", `Server: User unsubscribed from ${channel}`);
+    });
   });
 
   // Wrapper around socket.io's emit functionality that requires the client to provide a channel
-  socket.on("publish", async ({ channel, eventType, data }) => {
-    let responseData = data;
-    console.log("response data", responseData);
+  socket.on("publish", async ({ channel, message }) => {
+    const { type, content } = message;
+
+    // switch (type) {
+    //   case "text":
+    //     break;
+    //   //TODO ADD IN OTHER TYPES (INTEGER, ARRAY, ETC)
+    //   default:
+    //   // code block
+    // }
+
+    let responseMessage = content;
+    console.log("response message", responseMessage);
 
     if (Lambdas.hasLambda(channel)) {
       console.log("has lambda");
-      responseData = await Lambdas.callLambda({ channel, eventType, data });
+      console.log(content);
+      responseMessage = await Lambdas.callLambda({ channel, content });
     }
 
-    io.to(channel).emit("thought", responseData);
+    io.to(channel).emit("thought", responseMessage);
   });
 });
 

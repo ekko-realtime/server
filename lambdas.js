@@ -1,8 +1,10 @@
+require('dotenv').config()
+
 const AWS = require("aws-sdk");
 AWS.config.update({
-  accessKeyId: "AKIAQ7EEXEND2AFKWN5N",
-  secretAccessKey: "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",
-  region: "us-east-2",
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
 });
 const lambda = new AWS.Lambda();
 
@@ -10,12 +12,12 @@ const db = { balloon: "slow" };
 
 const hasLambda = (channel) => db[channel];
 
-const callLambda = async ({ channel, eventType, data }) => {
-  console.log("CALLING LAMBDA:", channel, eventType, data);
+const callLambda = async ({ channel, content }) => {
+  console.log("CALLING LAMBDA:", channel, content);
 
   const params = {
     FunctionName: db[channel],
-    Payload: JSON.stringify({ message: data }),
+    Payload: JSON.stringify({ message: content }),
   };
 
   const result = await lambda.invoke(params).promise();
