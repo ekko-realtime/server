@@ -17,11 +17,12 @@ const callLambda = async ({ channel, message }) => {
 
   const params = {
     FunctionName: db[channel],
-    Payload: JSON.stringify({ message: message }),
+    Payload: JSON.stringify({ message }),
   };
 
   const result = await lambda.invoke(params).promise();
-  return JSON.parse(result.Payload).body;
+
+  return JSON.parse(result.Payload);
 };
 
 module.exports = {

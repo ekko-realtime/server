@@ -48,8 +48,7 @@ io.on("connection", (socket) => {
     if (Lambdas.hasLambda(params.channel)) {
       payload.message = await Lambdas.callLambda({
         channel: params.channel,
-        // TODO: Change this to passin message object & format return to have message object
-        message: params.message.content,
+        message: params.message,
       });
     }
 
