@@ -27,15 +27,18 @@ io.on("connection", (socket) => {
   socket.on("subscribe", ({ channels }) => {
     channels.forEach((channel) => {
       socket.join(channel);
-      // TODO add status update functionality
+      // TODO add status update functionality (for dev backend server)
       console.log(`Server: User subscribed to ${channel}`);
       io.to(channel).emit("info", `Server: User subscribed to ${channel}`);
     });
   });
 
-  socket.on("unsubscribe", (channel) => {
-    socket.leave(channel);
-    console.log(`Server: User unsubscribed from ${channel}`);
+  socket.on("unsubscribe", ({ channels }) => {
+    channels.forEach((channel) => {
+      socket.leave(channel);
+      // TODO add status update functionality (for dev backend server)
+      io.to(channel).emit("info", `Server: User unsubscribed from ${channel}`);
+    });
   });
 
   // Wrapper around socket.io's emit functionality that requires the client to provide a channel
