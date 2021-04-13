@@ -1,4 +1,4 @@
-require('dotenv').config()
+require("dotenv").config();
 
 const AWS = require("aws-sdk");
 AWS.config.update({
@@ -12,12 +12,12 @@ const db = { balloon: "slow" };
 
 const hasLambda = (channel) => db[channel];
 
-const callLambda = async ({ channel, content }) => {
-  console.log("CALLING LAMBDA:", channel, content);
+const callLambda = async ({ channel, message }) => {
+  console.log("CALLING LAMBDA:", channel, message);
 
   const params = {
     FunctionName: db[channel],
-    Payload: JSON.stringify({ message: content }),
+    Payload: JSON.stringify({ message: message }),
   };
 
   const result = await lambda.invoke(params).promise();
