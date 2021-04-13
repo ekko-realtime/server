@@ -41,28 +41,19 @@ io.on("connection", (socket) => {
     });
   });
 
-  // Wrapper around socket.io's emit functionality that requires the client to provide a channel
-  socket.on("publish", async ({ channel, message }) => {
-    const { type, content } = message;
+  // TODO: decide if publish is message specific or if we should have access to another paramter for presence/status/etc.
+  socket.on("publish", async (params) => {
+    let payload = { ...params };
 
-    // switch (type) {
-    //   case "text":
-    //     break;
-    //   //TODO ADD IN OTHER TYPES (INTEGER, ARRAY, ETC)
-    //   default:
-    //   // code block
-    // }
-
-    let responseMessage = content;
-    console.log("response message", responseMessage);
-
-    if (Lambdas.hasLambda(channel)) {
-      console.log("has lambda");
-      console.log(content);
-      responseMessage = await Lambdas.callLambda({ channel, content });
+    if (Lambdas.hasLambda(params.channel)) {
+      payload.message = await Lambdas.callLambda({
+        channel: params.channel,
+        // TODO: Change this to passin message object & format return to have message object
+        message: params.message.content,
+      });
     }
 
-    io.to(channel).emit("thought", responseMessage);
+    io.to(params.channel).emit("message", payload);
   });
 });
 
