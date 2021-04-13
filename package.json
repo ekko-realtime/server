@@ -1,7 +1,7 @@
 {
   "name": "ekko-server",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "If you're building a realtime app, use ekko for your infrastructure.",
   "main": "ekko-server.js",
   "scripts": {
     "start": "node ekko-server.js",
