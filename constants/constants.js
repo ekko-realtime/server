@@ -1,3 +1,5 @@
 const TABLE_NAME = "ekko-function-channel-pairs";
 
-export default TABLE_NAME;
+module.exports = {
+  TABLE_NAME: TABLE_NAME,
+};
