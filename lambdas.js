@@ -6,25 +6,39 @@ AWS.config.update({
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   region: process.env.AWS_REGION,
 });
+
+const DynamoMgr = require("./lib/db/DynamoMgr");
+const db = new DynamoMgr({setLoadInterval: false});
 const lambda = new AWS.Lambda();
 
-const db = { balloon: "slow" };
+const getAllLambdaData = () => {
+  return db.getData();
+};
 
-const hasLambda = (channel) => db[channel];
+const getMatchingLambdas = (channel) => {
+  return db.getFunctionsByChannel(channel);
+};
 
-const callLambda = async ({ channel, message }) => {
+const processMessage = async ({ channel, message, lambdas }) => {
   console.log("CALLING LAMBDA:", channel, message);
+  console.log("call lambda ", lambdas[0]);
 
-  const params = {
-    FunctionName: db[channel],
-    Payload: JSON.stringify({ message: message }),
-  };
-
-  const result = await lambda.invoke(params).promise();
-  return JSON.parse(result.Payload).body;
+  try {
+    const params = {
+      FunctionName: lambdas[0],
+      Payload: JSON.stringify({ message }),
+    };
+  
+    const result = await lambda.invoke(params).promise();
+    // console.log("result ", result);
+    return JSON.parse(result.Payload).body;
+  } catch (error) {
+    console.error("Error invoking lambda: ", error);
+  }
 };
 
 module.exports = {
-  callLambda,
-  hasLambda,
+  getAllLambdaData,
+  processMessage,
+  getMatchingLambdas,
 };

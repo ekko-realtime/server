@@ -44,16 +44,19 @@ io.on("connection", (socket) => {
   // TODO: decide if publish is message specific or if we should have access to another paramter for presence/status/etc.
   socket.on("publish", async (params) => {
     let payload = { ...params };
-
-    if (Lambdas.hasLambda(params.channel)) {
-      payload.message = await Lambdas.callLambda({
-        channel: params.channel,
-        // TODO: Change this to passin message object & format return to have message object
-        message: params.message.content,
+    const { channel, message } = params;
+    const matchingLambdas = Lambdas.getMatchingLambdas(channel);
+    
+    if (matchingLambdas) {
+      let response = await Lambdas.processMessage({
+        channel,
+        message,
+        lambdas: matchingLambdas
       });
+      payload.message = response.message;
     }
-
-    io.to(params.channel).emit("message", payload);
+    
+    io.to(channel).emit("message", payload);
   });
 });
 
