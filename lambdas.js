@@ -19,19 +19,28 @@ const getMatchingLambdas = (channel) => {
   return db.getFunctionsByChannel(channel);
 };
 
+//process a list of lambdas
 const processMessage = async ({ channel, message, lambdas }) => {
-  console.log("CALLING LAMBDA:", channel, message);
-  console.log("call lambda ", lambdas[0]);
+  // console.log("PROCESS LAMBDAS:", channel, message, lambdas);
 
+  for (let idx = 0; idx < lambdas.length; idx += 1) {
+    let currentLambda = lambdas[idx];
+    message = await callLambda({ message, currentLambda });
+  }
+  
+  return { message };
+};
+
+const callLambda = async ({ message, currentLambda }) => {
+  //comsole.log("CALL LAMBDA ", currentLambda, message);
   try {
     const params = {
-      FunctionName: lambdas[0],
+      FunctionName: currentLambda,
       Payload: JSON.stringify({ message }),
     };
-  
+    
     const result = await lambda.invoke(params).promise();
-    // console.log("result ", result);
-    return JSON.parse(result.Payload).body;
+    return JSON.parse(result.Payload).body.message;
   } catch (error) {
     console.error("Error invoking lambda: ", error);
   }
