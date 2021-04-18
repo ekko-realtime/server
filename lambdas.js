@@ -8,7 +8,7 @@ AWS.config.update({
 });
 
 const DynamoMgr = require("./lib/db/DynamoMgr");
-const db = new DynamoMgr({setLoadInterval: false});
+const db = new DynamoMgr({ setLoadInterval: false });
 const lambda = new AWS.Lambda();
 
 const getAllLambdaData = () => {
@@ -27,7 +27,7 @@ const processMessage = async ({ channel, message, lambdas }) => {
     let currentLambda = lambdas[idx];
     message = await callLambda({ message, currentLambda });
   }
-  
+
   return { message };
 };
 
@@ -38,9 +38,9 @@ const callLambda = async ({ message, currentLambda }) => {
       FunctionName: currentLambda,
       Payload: JSON.stringify({ message }),
     };
-    
+
     const result = await lambda.invoke(params).promise();
-    return JSON.parse(result.Payload).body.message;
+    return JSON.parse(result.Payload);
   } catch (error) {
     console.error("Error invoking lambda: ", error);
   }
