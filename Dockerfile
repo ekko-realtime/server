@@ -1,12 +1,11 @@
-FROM node:14.14.0
-ENV NODE_ENV=production
 
+FROM node:14.2.0-alpine3.11 AS build
 WORKDIR /ekko
+ADD package.json .
+RUN npm install
+ADD . .
 
-COPY ["package.json", "package-lock.json*", "./"]
-
-RUN npm install --production
-
-COPY . .
-
+FROM node:14.2.0-alpine3.11
+COPY --from=build /ekko .
+EXPOSE 3000
 CMD ["node", "ekko-server.js"]
