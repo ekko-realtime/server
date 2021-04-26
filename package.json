@@ -2,9 +2,9 @@
   "name": "ekko-server",
   "version": "0.0.1",
   "description": "If you're building a realtime app, use ekko for your infrastructure.",
-  "main": "ekko-server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node ekko-server.js",
+    "start": "node ekko.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
