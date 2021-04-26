@@ -1,60 +1,40 @@
-const express = require("express");
-const jsonwebtoken = require("jsonwebtoken");
+require("dotenv").config();
+const app = require("express")();
+const server = require("http").Server(app);
 const cors = require("cors");
-const app = express();
-app.use(cors());
-
-const http = require("http").Server(app);
-const io = require("socket.io")(http, {
-  cors: {
-    origin: "http://localhost:5000",
-    // TODO: Look into what the "GET" and "POST" are doing
-    methods: ["GET", "POST"],
-  },
-});
-
+const socketio = require("socket.io");
 const redis = require("socket.io-redis");
-const redisHost = process.env.REDIS_ENDPOINT;
-const redisPort = process.env.REDIS_PORT;
-io.adapter(redis({ host: redisHost, port: redisPort }));
+const Lambdas = require("./lib/lambdas/lambdas.js");
+const { isValid, addParamsToSocket } = require("./lib/authorization");
 
 const port = process.env.PORT || 3000;
+const redisHost = process.env.REDIS_ENDPOINT;
+const redisPort = process.env.REDIS_PORT;
 
-const Lambdas = require("./lib/lambdas/lambdas.js");
-
-app.get("/", (req, res) => {
-  res.send("ekko-server");
-});
-
+app.use(cors());
+const io = socketio(server, { cors: { origin: "*" } }); // TODO: Is this the best way to handle all origins?
+io.adapter(redis({ host: redisHost, port: redisPort }));
 const ekkoApps = io.of(/.*/);
 
-ekkoApps.use((socket, next) => {
-  const appName = socket.nsp.name.substr(1);
-  const jwt = socket.handshake.auth.jwt;
+// Handle authorization
+ekkoApps.use(async (socket, next) => {
+  if (await isValid(socket)) {
+    next();
+  } else {
+    next(new Error("Authorization error"));
+  }
+});
 
-  jsonwebtoken.verify(jwt, "SECRET", (err, decoded) => {
-    if (!err) {
-      socket.appName = decoded.appName;
-      socket.admin = decoded.admin;
-
-      if (appName === socket.appName) {
-        next();
-      } else {
-        next(new Error("credential error"));
-      }
-    } else {
-      next(new Error("JWT error"));
-    }
-  });
+// Add params to socket
+ekkoApps.use(async (socket, next) => {
+  await addParamsToSocket(socket);
+  next();
 });
 
 ekkoApps.on("connection", (socket) => {
-  const appName = socket.nsp.name.split("/")[1];
-  const admin = socket.admin;
-
   console.log("Server: User connected");
 
-  if (admin) {
+  if (socket.admin) {
     subscribeToChannels(socket, { channels: ["admin"] });
   }
 
@@ -173,7 +153,11 @@ const publish = async (appName, params) => {
   io.of(appName).to(channel).emit("message", payload);
 };
 
-http.listen(port, () => {
+app.get("/", (req, res) => {
+  res.send("ekko-server"); // TODO: Should this endpoint render anything?
+});
+
+server.listen(port, () => {
   const message = `Server: ekko server started on port ${port}`;
   const line = new Array(message.length).fill("-").join("");
   console.log(`${line}\n${message}\n${line}`);
