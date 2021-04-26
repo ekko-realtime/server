@@ -32,7 +32,7 @@ ekkoApps.use((socket, next) => {
   const appName = socket.nsp.name.substr(1);
   const jwt = socket.handshake.auth.jwt;
 
-  const key = jsonwebtoken.verify(jwt, "SECRET", (err, decoded) => {
+  jsonwebtoken.verify(jwt, "SECRET", (err, decoded) => {
     if (!err) {
       socket.appName = decoded.appName;
       socket.admin = decoded.admin;
