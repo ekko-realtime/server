@@ -1,5 +1,5 @@
 module.exports = (io) => {
-  const { logEvent } = require("./logging")(io);
+  const { logEvent, sendPresenceEvents } = require("./logging")(io);
 
   const handleSubscribe = (socket, params) => {
     subscribeToChannels(socket, params);
@@ -11,12 +11,17 @@ module.exports = (io) => {
 
   // PRIVATE
 
-  const subscribeToChannels = (socket, data) => {
-    let { channels, presenceEvents } = data;
+  const subscribeToChannels = (socket, params) => {
+    console.log("subscribeToChannels");
+    let { channels, withPresence } = params;
 
     channels.forEach((channel) => {
       if (channel !== "admin" || socket.admin) {
         socket.join(channel);
+        if (withPresence) {
+          socket.join(presenceChannel(channel));
+          sendPresenceEvents("subscribe", socket, channel);
+        }
       }
 
       logEvent({ socket, eventName: `JOINED "${channel}" channel` });
@@ -27,7 +32,7 @@ module.exports = (io) => {
     console.log("unsubscribe to channels");
     channels.forEach((channel) => {
       unsubscribeFromChannel(socket, channel);
-      sendConnectionEvents("unsubscribe", socket, channel);
+      sendPresenceEvents("unsubscribe", socket, channel);
     });
   };
 
@@ -36,10 +41,9 @@ module.exports = (io) => {
     socket.leave(presenceChannel(channel));
   };
 
+  const presenceChannel = (channel) => {
+    return `${channel}_presence`;
+  };
+
   return { handleSubscribe, handleUnsubscribe };
 };
-
-// TODO: !!! ADD TO subscribeToChannels IF WE UPDATE FUNCTIONALITY TO INCLUDE PRESENCE
-// if (presenceEvents) {
-//   socket.join(presenceChannel(channel));
-// }

@@ -67,6 +67,6 @@ server.listen(port, () => {
 // };
 
 // TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
-// app.get("/", (req, res) => {
-//   res.send("ekko-server"); // TODO: Should this endpoint render anything?
-// });
+app.get("/", (req, res) => {
+  res.send("ekko-server"); // TODO: Should this endpoint render anything?
+});

@@ -18,7 +18,7 @@ module.exports = (io) => {
   // PRIVATE
 
   const socketDisconnect = (socket) => {
-    console.log("SOCKET", socket.rooms);
+    // console.log("SOCKET", socket.rooms);
     // TODO: This seems to always return a set(0)
     socket.rooms.forEach((channel) => {
       logEvent({ socket, eventName: `LEFT "${channel}" channel` });
