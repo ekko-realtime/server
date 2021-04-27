@@ -22,10 +22,30 @@ module.exports = (io) => {
     io.of(payload.app).to("admin").emit("status", { message: payload });
   };
 
-  return { logEvent };
+  const sendPresenceEvents = (eventType, socket, channel) => {
+    let action = eventType == "subscribe" ? "JOINED" : "LEFT";
+  
+    let payload = {
+      message: {
+        content: `has ${action} ${channel} channel.`,
+      },
+      uuid: socket.uuid, 
+    };
+    
+    io.of(socket.appName).to(presenceChannel(channel)).emit("presence", payload); //send to just presence channel
+    logEvent({ socket, eventName: `${action} "${channel}" channel` });
+  };
+
+  const presenceChannel = (channel) => {
+    return `${channel}_presence`;
+  };
+  
+  return { logEvent, sendPresenceEvents };
 };
 
-// const sendConnectionEvents = (eventType, socket, channel) => {
+
+
+// const sendPresenceEvents = (eventType, socket, channel) => {
 //   let action = eventType == "subscribe" ? "joined" : "left";
 
 //   let payload = {
@@ -37,5 +57,6 @@ module.exports = (io) => {
 //   console.log("sendConnectionEvent ", payload.message.content);
 
 //   io.of(socket.appName).to(presenceChannel(channel)).emit("presence", payload); //send to just presence channel
-//   io.of(socket.appName).to("admin").emit("status", payload); //send status event
+
+//   // io.of(socket.appName).to("admin").emit("status", payload); //send status event
 // };
