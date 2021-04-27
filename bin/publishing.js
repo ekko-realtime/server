@@ -10,9 +10,8 @@ module.exports = (io) => {
 
   const publish = async (appName, params) => {
     let payload = { ...params };
-    let { app, channel, message } = params;
-    app = "app_1"; //for testing, remove for production
-    const matchingLambdas = Lambdas.getMatchingLambdas(app, channel);
+    let { channel, message } = params;
+    const matchingLambdas = Lambdas.getMatchingLambdas(appName, channel);
     console.log("matchingLambdas ", matchingLambdas);
 
     if (matchingLambdas) {
