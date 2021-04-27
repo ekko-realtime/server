@@ -15,12 +15,12 @@ module.exports = (io) => {
     console.log("matchingLambdas ", matchingLambdas);
 
     if (matchingLambdas) {
-      let response = await Lambdas.processMessage({
+      let updatedMessage = await Lambdas.processMessage({
         channel,
         message,
         lambdas: matchingLambdas,
       });
-      payload.message = response.message;
+      payload.message = updatedMessage;
     }
 
     io.of(appName).to(channel).emit("message", payload);
