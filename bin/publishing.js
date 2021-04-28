@@ -1,6 +1,5 @@
 module.exports = (io) => {
   const Lambdas = require("../lib/lambdas/lambdas.js");
-  const { logEvent } = require("./logging");
 
   const handlePublish = (socket, params) => {
     publish(socket.appName, params);
@@ -20,7 +19,7 @@ module.exports = (io) => {
         message,
         lambdas: matchingLambdas,
       });
-      payload.message = updatedMessage;
+      payload.message = updatedMessage ? updatedMessage : payload.message;
     }
 
     io.of(appName).to(channel).emit("message", payload);
