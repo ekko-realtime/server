@@ -8,4 +8,4 @@ ADD . .
 FROM node:14.2.0-alpine3.11
 COPY --from=build /ekko .
 EXPOSE 3000
-CMD ["node", "ekko-server.js"]
+CMD ["node", "ekko.js"]

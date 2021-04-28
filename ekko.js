@@ -6,8 +6,8 @@ const socketio = require("socket.io");
 const redis = require("socket.io-redis");
 
 const port = process.env.PORT || 3000;
-const redisHost = process.env.REDIS_ENDPOINT;
-const redisPort = process.env.REDIS_PORT;
+const redisHost = process.env.REDIS_ENDPOINT || "localhost";
+const redisPort = process.env.REDIS_PORT || 6379;
 
 const io = socketio(server, { cors: { origin: "*" } });
 io.adapter(redis({ host: redisHost, port: redisPort }));
