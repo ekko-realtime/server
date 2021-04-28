@@ -1,6 +1,6 @@
 module.exports = (() => {
   const jwt = require("jsonwebtoken");
-  const secret = process.env.EKKO_SECRET || "SECRET";
+  const secret = process.env.SECRET_KEY || "SECRET";
 
   const handleAuthorization = async (socket, next) => {
     if (await isValid(socket)) {

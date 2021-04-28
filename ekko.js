@@ -30,6 +30,7 @@ ekkoApps.use(handleAddParamsToSocket);
 
 // Handle connected socket events
 ekkoApps.on("connection", (socket) => {
+  console.log("connection");
   handleConnect(socket);
   socket.on("disconnect", () => handleDisconnect(socket));
   socket.on("subscribe", (params) => handleSubscribe(socket, params));
