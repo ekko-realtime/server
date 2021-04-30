@@ -13,7 +13,7 @@ const io = socketio(server, { cors: { origin: "*" } });
 io.adapter(redis({ host: redisHost, port: redisPort }));
 const ekkoApps = io.of(/.*/);
 
-// Managers
+// Managers2
 const LoggingMgr = require("./lib/loggingMgr");
 const AssociationMgr = require("./lib/associationsMgr");
 const LambdaMgr = require("./lib/lambdaMgr");
