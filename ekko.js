@@ -14,27 +14,40 @@ io.adapter(redis({ host: redisHost, port: redisPort }));
 const ekkoApps = io.of(/.*/);
 
 // Managers
+const LoggingMgr = require("./lib/loggingMgr");
 const AssociationMgr = require("./lib/associationsMgr");
 const LambdaMgr = require("./lib/lambdaMgr");
-const associationsMgr = new AssociationMgr({ setLoadInterval: true, io });
-const lambdaMgr = new LambdaMgr({ associationsMgr, io });
+const loggingMgr = new LoggingMgr({ io });
+const associationsMgr = new AssociationMgr({
+  loggingMgr,
+  setLoadInterval: true,
+  io,
+});
+const lambdaMgr = new LambdaMgr({ loggingMgr, associationsMgr, io });
 
 // Handlers
-const authorizing = require("./bin/authorizing");
-const connecting = require("./bin/connecting")(io);
-const subscribing = require("./bin/subscribing")(io);
-const publishing = require("./bin/publishing")({ io, lambdaMgr });
-const logging = require("./bin/logging")(io);
-
 const {
   handleAuthorization,
   handleAddParamsToSocket,
   handleAssociationsDecoding,
-} = authorizing;
-const { handleConnect, handleDisconnect } = connecting;
-const { handleSubscribe, handleUnsubscribe } = subscribing;
-const { handlePublish } = publishing;
-const { logEvent } = logging;
+} = require("./bin/authorizing");
+
+const { handleConnect, handleDisconnect } = require("./bin/connecting")(
+  loggingMgr,
+  io
+);
+
+const {
+  handleSubscribe,
+  handleUnsubscribe,
+  handleAdminSubscribe,
+} = require("./bin/subscribing")(loggingMgr, io);
+
+const { handlePublish } = require("./bin/publishing")(
+  lambdaMgr,
+  io,
+  loggingMgr
+);
 
 // Middleware
 app.use(cors());
@@ -43,8 +56,9 @@ ekkoApps.use(handleAddParamsToSocket);
 
 // Handle connected socket events
 ekkoApps.on("connection", (socket) => {
-  logEvent({ socket, eventName: "connection" });
+  loggingMgr.logEvent({ socket, eventName: "connection" });
   handleConnect(socket);
+  handleAdminSubscribe(socket);
   socket.on("disconnect", () => handleDisconnect(socket));
   socket.on("subscribe", (params) => handleSubscribe(socket, params));
   socket.on("unsubscribe", (params) => handleUnsubscribe(socket, params));

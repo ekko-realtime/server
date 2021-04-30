@@ -1,18 +1,13 @@
-module.exports = (io) => {
-  const { logEvent } = require("./logging")(io);
-  const { handleSubscribe } = require("./subscribing")(io);
+module.exports = (loggingMgr) => {
+  console.log("connecting received loggingMgr", loggingMgr);
 
   const handleConnect = (socket) => {
-    logEvent({ socket, eventName: "CONNECTED to ekko server" });
-
-    if (socket.admin) {
-      handleSubscribe(socket, { channels: ["admin"] });
-    }
+    loggingMgr.logEvent({ socket, eventName: "CONNECTED to ekko server" });
   };
 
   const handleDisconnect = (socket) => {
     socketDisconnect(socket);
-    logEvent({ socket, eventName: "DISCONNECTED from ekko server" });
+    loggingMgr.logEvent({ socket, eventName: "DISCONNECTED from ekko server" });
   };
 
   // PRIVATE
@@ -21,7 +16,7 @@ module.exports = (io) => {
     // console.log("SOCKET", socket.rooms);
     // TODO: This seems to always return a set(0)
     socket.rooms.forEach((channel) => {
-      logEvent({ socket, eventName: `LEFT "${channel}" channel` });
+      loggingMgr.logEvent({ socket, eventName: `LEFT "${channel}" channel` });
     });
   };
 

@@ -1,6 +1,4 @@
-module.exports = ({ io, lambdaMgr }) => {
-  const { logEvent } = require("./logging.js")(io);
-
+module.exports = (lambdaMgr, io, loggingMgr) => {
   const handlePublish = (socket, params) => {
     publish(socket, params);
   };
@@ -13,7 +11,10 @@ module.exports = ({ io, lambdaMgr }) => {
     let { channel, message } = params;
 
     const matchingLambdas = lambdaMgr.getMatchingLambdas(appName, channel);
-    logEvent({ socket, eventName: `matching_lambdas: ${matchingLambdas}` });
+    loggingMgr.logEvent({
+      socket,
+      eventName: `matching_lambdas: ${matchingLambdas}`,
+    });
 
     if (matchingLambdas) {
       let updatedMessage = await lambdaMgr.processMessage({
@@ -23,7 +24,10 @@ module.exports = ({ io, lambdaMgr }) => {
       });
 
       if (!updatedMessage) {
-        logEvent({ socket, eventName: `nothing returned from lambdas` });
+        loggingMgr.logEvent({
+          socket,
+          eventName: `nothing returned from lambdas`,
+        });
       } else {
         payload.message = updatedMessage;
       }
