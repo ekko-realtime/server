@@ -23,6 +23,7 @@ module.exports = (lambdaMgr, io, loggingMgr) => {
         lambdas: matchingLambdas,
       });
 
+      console.log("updatedMessage ", updatedMessage);
       if (!updatedMessage) {
         loggingMgr.logEvent({
           socket,
@@ -32,7 +33,7 @@ module.exports = (lambdaMgr, io, loggingMgr) => {
         payload.message = updatedMessage;
       }
     }
-
+    console.log("****", appName, channel, payload);
     io.of(appName).to(channel).emit("message", payload);
   };
 

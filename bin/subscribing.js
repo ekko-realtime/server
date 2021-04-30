@@ -1,5 +1,4 @@
 module.exports = (loggingMgr) => {
-  const sendPresenceEvents = loggingMgr.sendPresenceEvents;
 
   const handleSubscribe = (socket, params) => {
     subscribeToChannels(socket, params);
@@ -25,7 +24,7 @@ module.exports = (loggingMgr) => {
         socket.join(channel);
         if (withPresence) {
           socket.join(presenceChannel(channel));
-          sendPresenceEvents("subscribe", socket, channel);
+          loggingMgr.sendPresenceEvents("subscribe", socket, channel);
         }
       }
     });
@@ -34,7 +33,7 @@ module.exports = (loggingMgr) => {
   const unsubscribeFromChannels = (socket, { channels }) => {
     channels.forEach((channel) => {
       unsubscribeFromChannel(socket, channel);
-      sendPresenceEvents("unsubscribe", socket, channel);
+      loggingMgr.sendPresenceEvents("unsubscribe", socket, channel);
     });
   };
 

@@ -4,6 +4,7 @@ const server = require("http").Server(app);
 const cors = require("cors");
 const socketio = require("socket.io");
 const redis = require("socket.io-redis");
+const express = require("express");
 
 const port = process.env.PORT || 3000;
 const redisHost = process.env.REDIS_ENDPOINT || "localhost";
@@ -20,7 +21,6 @@ const LambdaMgr = require("./lib/lambdaMgr");
 const loggingMgr = new LoggingMgr({ io });
 const associationsMgr = new AssociationMgr({
   loggingMgr,
-  setLoadInterval: true,
   io,
 });
 const lambdaMgr = new LambdaMgr({ loggingMgr, associationsMgr, io });
@@ -53,6 +53,7 @@ const { handlePublish } = require("./bin/publishing")(
 app.use(cors());
 ekkoApps.use(handleAuthorization);
 ekkoApps.use(handleAddParamsToSocket);
+app.use(express.json());
 
 // Handle connected socket events
 ekkoApps.on("connection", (socket) => {
@@ -63,7 +64,15 @@ ekkoApps.on("connection", (socket) => {
   socket.on("subscribe", (params) => handleSubscribe(socket, params));
   socket.on("unsubscribe", (params) => handleUnsubscribe(socket, params));
   socket.on("publish", (params) => handlePublish(socket, params));
-  //socket.on("update", (associations) => handle)
+  socket.on("update", (associations) => {
+    console.log("socket received update");
+    associationsMgr.handleUpdateAssociations(associations);
+  });
+});
+
+io.on("update", (associations) => {
+  console.log("received update");
+  associationsMgr.handleUpdateAssociations(associations);
 });
 
 server.listen(port, () => {
@@ -95,9 +104,16 @@ app.get("/", (req, res) => {
   res.send("ekko-server"); // TODO: Should this endpoint render anything?
 });
 
-app.put("/associations", (req, res) => {
+app.post("/associations", (req, res) => {
   //send req.body to associations manager
   //decrypt
-  const updatedAssociations = handleAssociationsDecoding(req.body);
-  if (updatedAssociations) io.emit("update", updatedAssociations);
+  console.log("request ", req.body);
+  const updatedAssociations = handleAssociationsDecoding(req.body.token);
+
+  if (updatedAssociations) {
+    res.sendStatus(200);
+    io.of("balloon").emit("update", updatedAssociations);
+  } else {
+    res.status(400).send("Invalid JWT");
+  }
 });
