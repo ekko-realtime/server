@@ -1,5 +1,5 @@
-module.exports = (io) => {
-  const { logEvent, sendPresenceEvents } = require("./logging")(io);
+module.exports = (loggingMgr) => {
+  const sendPresenceEvents = loggingMgr.sendPresenceEvents;
 
   const handleSubscribe = (socket, params) => {
     subscribeToChannels(socket, params);
@@ -7,6 +7,12 @@ module.exports = (io) => {
 
   const handleUnsubscribe = (socket, params) => {
     unsubscribeFromChannels(socket, params);
+  };
+
+  const handleAdminSubscribe = (socket) => {
+    if (socket.admin) {
+      handleSubscribe(socket, { channels: ["admin"] });
+    }
   };
 
   // PRIVATE
@@ -41,5 +47,5 @@ module.exports = (io) => {
     return `${channel}_presence`;
   };
 
-  return { handleSubscribe, handleUnsubscribe };
+  return { handleSubscribe, handleUnsubscribe, handleAdminSubscribe };
 };
