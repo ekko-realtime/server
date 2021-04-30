@@ -13,14 +13,24 @@ const io = socketio(server, { cors: { origin: "*" } });
 io.adapter(redis({ host: redisHost, port: redisPort }));
 const ekkoApps = io.of(/.*/);
 
+// Managers
+const AssociationMgr = require("./lib/associationsMgr");
+const LambdaMgr = require("./lib/lambdaMgr");
+const associationsMgr = new AssociationMgr({ setLoadInterval: true, io });
+const lambdaMgr = new LambdaMgr({ associationsMgr, io });
+
 // Handlers
 const authorizing = require("./bin/authorizing");
 const connecting = require("./bin/connecting")(io);
 const subscribing = require("./bin/subscribing")(io);
-const publishing = require("./bin/publishing")(io);
+const publishing = require("./bin/publishing")({ io, lambdaMgr });
 const logging = require("./bin/logging")(io);
 
-const { handleAuthorization, handleAddParamsToSocket, handleAssociationsDecoding } = authorizing;
+const {
+  handleAuthorization,
+  handleAddParamsToSocket,
+  handleAssociationsDecoding,
+} = authorizing;
 const { handleConnect, handleDisconnect } = connecting;
 const { handleSubscribe, handleUnsubscribe } = subscribing;
 const { handlePublish } = publishing;
