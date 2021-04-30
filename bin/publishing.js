@@ -3,7 +3,6 @@ module.exports = (io) => {
   const { logEvent } = require("./logging.js")(io);
 
   const handlePublish = (socket, params) => {
-    //publish(socket.appName, params);
     publish(socket, params);
   };
 
@@ -15,7 +14,6 @@ module.exports = (io) => {
     let { channel, message } = params;
 
     const matchingLambdas = Lambdas.getMatchingLambdas(appName, channel);
-    console.log("matchingLambdas ", matchingLambdas);
     logEvent({socket, eventName: `matching_lambdas: ${matchingLambdas}`});
     
     if (matchingLambdas) { 
@@ -30,7 +28,7 @@ module.exports = (io) => {
       } else {
         payload.message = updatedMessage;
       }
-      //payload.message = updatedMessage ? updatedMessage : payload.message;
+     
     }
 
     io.of(appName).to(channel).emit("message", payload);

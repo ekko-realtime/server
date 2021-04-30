@@ -43,20 +43,3 @@ module.exports = (io) => {
   return { logEvent, sendPresenceEvents };
 };
 
-
-
-// const sendPresenceEvents = (eventType, socket, channel) => {
-//   let action = eventType == "subscribe" ? "joined" : "left";
-
-//   let payload = {
-//     message: {
-//       content: `has ${action} ${channel} channel.`,
-//     },
-//     uuid: socket.nickname, // THIS IS NOW ALWAYS ON THE SOCKET
-//   };
-//   console.log("sendConnectionEvent ", payload.message.content);
-
-//   io.of(socket.appName).to(presenceChannel(channel)).emit("presence", payload); //send to just presence channel
-
-//   // io.of(socket.appName).to("admin").emit("status", payload); //send status event
-// };

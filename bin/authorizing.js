@@ -1,58 +1,73 @@
-module.exports = (() => {
-  const jwt = require("jsonwebtoken");
-  const secret = process.env.SECRET_KEY || "SECRET";
 
-  const handleAuthorization = async (socket, next) => {
-    if (await isValid(socket)) {
-      next();
-    } else {
-      next(new Error("Authorization error"));
-    }
-  };
+const jwt = require("jsonwebtoken");
+const secret = process.env.SECRET_KEY || "SECRET";
 
-  const handleAddParamsToSocket = async (socket, next) => {
-    await addParamsToSocket(socket);
+const handleAuthorization = (socket, next) => {
+  if (validateAppCredentials(socket)) {
     next();
-  };
+  } else {
+    next(new Error("Authorization error"));
+  }
+};
 
-  // PRIVATE
+const handleAddParamsToSocket = (socket, next) => {
+  addParamsToSocket(socket);
+  next();
+};
 
-  const isValid = async (socket) => {
-    const appNameParam = getAppName(socket);
-    const token = getToken(socket);
+const handleAssociationsDecoding = (token) => {
+  try {
+    const associations = jwt.verify(token, secret);
+    return associations;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
 
-    return jwt.verify(token, secret, (err, decoded) => {
-      if (err) return false;
-      return decoded.appName === appNameParam;
-    });
-  };
+// PRIVATE
 
-  const addParamsToSocket = async (socket) => {
-    const token = getToken(socket);
-    const uuid = getUuid(socket);
-    const { appName, admin } = jwt.verify(token, secret);
+const validateAppCredentials = (socket) => {
+  const appNameParam = getAppName(socket);
+  const token = getToken(socket);
 
-    socket.appName = appName;
-    socket.admin = admin;
-    socket.uuid = uuid;
+  try {
+    const decoded = jwt.verify(token, secret);
+    return decoded.appName === appNameParam;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+};
 
-    return;
-  };
+const addParamsToSocket = (socket) => {
+  const token = getToken(socket);
+  const uuid = getUuid(socket);
+  const { appName, admin } = jwt.verify(token, secret);
 
-  const getAppName = (socket) => {
-    return socket.nsp.name.slice(1);
-  };
+  socket.appName = appName;
+  socket.admin = admin;
+  socket.uuid = uuid;
 
-  const getToken = (socket) => {
-    return socket.handshake.auth.jwt;
-  };
+  return;
+};
 
-  const getUuid = (socket) => {
-    return socket.handshake.auth.uuid;
-  };
+const getAppName = (socket) => {
+  return socket.nsp.name.slice(1);
+};
 
-  return {
-    handleAddParamsToSocket,
-    handleAuthorization,
-  };
-})();
+const getToken = (socket) => {
+  return socket.handshake.auth.jwt;
+};
+
+const getUuid = (socket) => {
+  return socket.handshake.auth.uuid;
+};
+
+module.exports = {
+  handleAddParamsToSocket,
+  handleAuthorization,
+  handleAssociationsDecoding,
+};
+
+

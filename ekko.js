@@ -18,10 +18,13 @@ const authorizing = require("./bin/authorizing");
 const connecting = require("./bin/connecting")(io);
 const subscribing = require("./bin/subscribing")(io);
 const publishing = require("./bin/publishing")(io);
-const { handleAuthorization, handleAddParamsToSocket } = authorizing;
+const logging = require("./bin/logging")(io);
+
+const { handleAuthorization, handleAddParamsToSocket, handleAssociationsDecoding } = authorizing;
 const { handleConnect, handleDisconnect } = connecting;
 const { handleSubscribe, handleUnsubscribe } = subscribing;
 const { handlePublish } = publishing;
+const { logEvent } = logging;
 
 // Middleware
 app.use(cors());
@@ -30,12 +33,13 @@ ekkoApps.use(handleAddParamsToSocket);
 
 // Handle connected socket events
 ekkoApps.on("connection", (socket) => {
-  console.log("connection");
+  logEvent({ socket, eventName: "connection" });
   handleConnect(socket);
   socket.on("disconnect", () => handleDisconnect(socket));
   socket.on("subscribe", (params) => handleSubscribe(socket, params));
   socket.on("unsubscribe", (params) => handleUnsubscribe(socket, params));
   socket.on("publish", (params) => handlePublish(socket, params));
+  //socket.on("update", (associations) => handle)
 });
 
 server.listen(port, () => {
@@ -65,4 +69,11 @@ server.listen(port, () => {
 // TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
 app.get("/", (req, res) => {
   res.send("ekko-server"); // TODO: Should this endpoint render anything?
+});
+
+app.put("/associations", (req, res) => {
+  //send req.body to associations manager
+  //decrypt
+  const updatedAssociations = handleAssociationsDecoding(req.body);
+  if (updatedAssociations) io.emit("update", updatedAssociations);
 });

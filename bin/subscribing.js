@@ -12,7 +12,6 @@ module.exports = (io) => {
   // PRIVATE
 
   const subscribeToChannels = (socket, params) => {
-    console.log("subscribeToChannels");
     let { channels, withPresence } = params;
 
     channels.forEach((channel) => {
@@ -23,13 +22,10 @@ module.exports = (io) => {
           sendPresenceEvents("subscribe", socket, channel);
         }
       }
-
-      logEvent({ socket, eventName: `JOINED "${channel}" channel` });
     });
   };
 
   const unsubscribeFromChannels = (socket, { channels }) => {
-    console.log("unsubscribe to channels");
     channels.forEach((channel) => {
       unsubscribeFromChannel(socket, channel);
       sendPresenceEvents("unsubscribe", socket, channel);
