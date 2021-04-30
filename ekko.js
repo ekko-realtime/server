@@ -62,11 +62,6 @@ server.listen(port, () => {
 //     console.log("getAllSocketsInChannel: ", activeSockets);
 //   });
 
-// TODO: !!! CAN ADD IF WE ADD PRESENCE FUNCTIONALITY
-// const presenceChannel = (channel) => {
-//   return `${channel}_presence`;
-// };
-
 // TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
 app.get("/", (req, res) => {
   res.send("ekko-server"); // TODO: Should this endpoint render anything?
