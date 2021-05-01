@@ -33,7 +33,7 @@ module.exports = (lambdaMgr, io, loggingMgr) => {
         payload.message = updatedMessage;
       }
     }
-    console.log("****", appName, channel, payload);
+
     io.of(appName).to(channel).emit("message", payload);
   };
 

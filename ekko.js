@@ -64,16 +64,79 @@ ekkoApps.on("connection", (socket) => {
   socket.on("subscribe", (params) => handleSubscribe(socket, params));
   socket.on("unsubscribe", (params) => handleUnsubscribe(socket, params));
   socket.on("publish", (params) => handlePublish(socket, params));
-  socket.on("update", (associations) => {
-    console.log("socket received update");
-    associationsMgr.handleUpdateAssociations(associations);
-  });
 });
 
-io.on("update", (associations) => {
-  console.log("received update");
-  associationsMgr.handleUpdateAssociations(associations);
+// TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
+app.get("/", (req, res) => {
+  res.send("ekko-server"); // TODO: Should this endpoint render anything?
 });
+
+app.put("/associations", (req, res) => {
+  //send req.body to associations manager
+  //decrypt
+  // console.log("request ", req.body);
+  // const updatedAssociations = handleAssociationsDecoding(req.body.token);
+  // if (updatedAssociations) {
+  // console.log("SENDING");
+  // redisEmitterIo
+  //   .of("helloworld")
+  //   .to("greeting")
+  //   .emit("publish", {
+  //     channel: "greeting",
+  //     message: { text: "YAYAYA" },
+  //   });
+  // console.log("SENT");
+  // res.sendStatus(200);
+  // } else {
+  // res.status(400).send("Invalid JWT");
+  // }
+});
+
+// ekko client
+// const Ekko = require("ekko-realtime-client");
+// const jsonWebToken = require("jsonwebtoken");
+// const { json } = require("express");
+// const secret = process.env.SECRET_KEY || "SECRET";
+// const appName = "ekko";
+// const jwt = jsonWebToken.sign({ appName, admin: false }, secret);
+
+// const ekko = new Ekko({
+//   host: "http://localhost:3000/",
+//   jwt,
+//   appName,
+// });
+
+// ekko.subscribe({ channels: ["associations"] });
+// ekko.addListener({
+//   message: (ekkoEvent) => {
+//     const associations = jsonWebToken.verify(ekkoEvent.token, secret);
+//     console.log(associations);
+//   },
+// });
+
+// setInterval(() => {
+//   const associations = {
+//     applications: {
+//       app_1: {
+//         channels: [
+//           { channelName: "channel_1", functionNames: ["capitalize"] },
+//           { channelName: "channel_2", functionNames: ["reverse"] },
+//           { channelName: "channel_3", functionNames: ["emphasize"] },
+//           {
+//             channelName: "channel_4",
+//             functionNames: ["capitalize", "reverse", "emphasize"],
+//           },
+//         ],
+//       },
+//     },
+//   };
+
+//   const token = jsonWebToken.sign(associations, secret);
+//   ekko.publish({
+//     channel: "associations",
+//     token,
+//   });
+// }, 2000);
 
 server.listen(port, () => {
   const message = `Server: ekko server started on port ${port}`;
@@ -98,22 +161,3 @@ server.listen(port, () => {
 //     let activeSockets = await io.in(channel).allSockets();
 //     console.log("getAllSocketsInChannel: ", activeSockets);
 //   });
-
-// TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
-app.get("/", (req, res) => {
-  res.send("ekko-server"); // TODO: Should this endpoint render anything?
-});
-
-app.post("/associations", (req, res) => {
-  //send req.body to associations manager
-  //decrypt
-  console.log("request ", req.body);
-  const updatedAssociations = handleAssociationsDecoding(req.body.token);
-
-  if (updatedAssociations) {
-    res.sendStatus(200);
-    io.of("balloon").emit("update", updatedAssociations);
-  } else {
-    res.status(400).send("Invalid JWT");
-  }
-});
