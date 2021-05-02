@@ -23,7 +23,6 @@ module.exports = (lambdaMgr, io, loggingMgr) => {
         lambdas: matchingLambdas,
       });
 
-      console.log("updatedMessage ", updatedMessage);
       if (!updatedMessage) {
         loggingMgr.logEvent({
           socket,

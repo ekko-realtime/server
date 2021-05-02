@@ -71,9 +71,11 @@ ekkoApps.on("connection", (socket) => {
 const redisSubscriber = redis.createClient(redisPort, redisHost);
 const redisPublisher = redis.createClient(redisPort, redisHost);
 redisSubscriber.subscribe("ekko-associations");
-redisSubscriber.on("message", (channel, message) => {
+redisSubscriber.on("message", (channel, stringData) => {
   // UPDATE IN MEMORY ASSOCIATION STUFF
-  console.log(message);
+  console.log(channel, stringData);
+  loggingMgr.logMessage("received redis update for ekko server");
+  associationsMgr.updateData(stringData);
 });
 
 // TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
@@ -83,9 +85,11 @@ app.get("/", (req, res) => {
 
 app.put("/associations", (req, res) => {
   const updatedAssociations = handleAssociationsDecoding(req.body.token);
+  loggingMgr.logMessage("received put request");
   if (updatedAssociations) {
-    console.log(updatedAssociations);
-    redisPublisher.publish("ekko-associations", "HELLO");
+    // console.log(updatedAssociations);
+    redisPublisher.publish("ekko-associations", updatedAssociations);
+    loggingMgr.logMessage("received updated jwt from CLI");
     res.sendStatus(200);
   } else {
     res.status(400).send("Invalid JWT");

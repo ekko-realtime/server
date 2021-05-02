@@ -1,4 +1,3 @@
-
 const jwt = require("jsonwebtoken");
 const secret = process.env.SECRET_KEY || "SECRET";
 
@@ -16,14 +15,15 @@ const handleAddParamsToSocket = (socket, next) => {
 };
 
 const handleAssociationsDecoding = (token) => {
+  console.log("token: ", token);
   try {
     const associations = jwt.verify(token, secret);
-    return associations;
+    return JSON.stringify(associations);
   } catch (error) {
     console.error(error);
     return false;
   }
-}
+};
 
 // PRIVATE
 
@@ -69,5 +69,3 @@ module.exports = {
   handleAuthorization,
   handleAssociationsDecoding,
 };
-
-
