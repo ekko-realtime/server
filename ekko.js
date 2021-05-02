@@ -3,39 +3,98 @@ const app = require("express")();
 const server = require("http").Server(app);
 const cors = require("cors");
 const socketio = require("socket.io");
-const redis = require("socket.io-redis");
+const socketioRedis = require("socket.io-redis");
+const redis = require("redis");
+const express = require("express");
 
 const port = process.env.PORT || 3000;
 const redisHost = process.env.REDIS_ENDPOINT || "localhost";
 const redisPort = process.env.REDIS_PORT || 6379;
 
 const io = socketio(server, { cors: { origin: "*" } });
-io.adapter(redis({ host: redisHost, port: redisPort }));
+io.adapter(socketioRedis({ host: redisHost, port: redisPort }));
 const ekkoApps = io.of(/.*/);
 
+// Managers2
+const LoggingMgr = require("./lib/loggingMgr");
+const AssociationMgr = require("./lib/associationsMgr");
+const LambdaMgr = require("./lib/lambdaMgr");
+const loggingMgr = new LoggingMgr({ io });
+const associationsMgr = new AssociationMgr({
+  loggingMgr,
+  io,
+});
+const lambdaMgr = new LambdaMgr({ loggingMgr, associationsMgr, io });
+
 // Handlers
-const authorizing = require("./bin/authorizing");
-const connecting = require("./bin/connecting")(io);
-const subscribing = require("./bin/subscribing")(io);
-const publishing = require("./bin/publishing")(io);
-const { handleAuthorization, handleAddParamsToSocket } = authorizing;
-const { handleConnect, handleDisconnect } = connecting;
-const { handleSubscribe, handleUnsubscribe } = subscribing;
-const { handlePublish } = publishing;
+const {
+  handleAuthorization,
+  handleAddParamsToSocket,
+  handleAssociationsDecoding,
+} = require("./bin/authorizing");
+
+const { handleConnect, handleDisconnect } = require("./bin/connecting")(
+  loggingMgr,
+  io
+);
+
+const {
+  handleSubscribe,
+  handleUnsubscribe,
+  handleAdminSubscribe,
+} = require("./bin/subscribing")(loggingMgr, io);
+
+const { handlePublish } = require("./bin/publishing")(
+  lambdaMgr,
+  io,
+  loggingMgr
+);
 
 // Middleware
 app.use(cors());
 ekkoApps.use(handleAuthorization);
 ekkoApps.use(handleAddParamsToSocket);
+app.use(express.json());
 
 // Handle connected socket events
 ekkoApps.on("connection", (socket) => {
-  console.log("connection");
+  loggingMgr.logEvent({ socket, eventName: "connection" });
   handleConnect(socket);
+  handleAdminSubscribe(socket);
   socket.on("disconnect", () => handleDisconnect(socket));
   socket.on("subscribe", (params) => handleSubscribe(socket, params));
   socket.on("unsubscribe", (params) => handleUnsubscribe(socket, params));
   socket.on("publish", (params) => handlePublish(socket, params));
+});
+
+// Update Associations
+const redisSubscriber = redis.createClient(redisPort, redisHost);
+const redisPublisher = redis.createClient(redisPort, redisHost);
+redisSubscriber.subscribe("ekko-associations");
+redisSubscriber.on("message", (channel, stringData) => {
+  // UPDATE IN MEMORY ASSOCIATION STUFF
+  console.log(channel, stringData);
+  loggingMgr.logMessage("received redis update for ekko server");
+  associationsMgr.updateData(stringData);
+});
+
+// TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
+app.get("/", (req, res) => {
+  res.send("ekko-server"); // TODO: Should this endpoint render anything?
+});
+
+app.put("/associations", (req, res) => {
+  const updatedAssociations = handleAssociationsDecoding(req.body.token);
+  loggingMgr.logMessage("received put request");
+  if (updatedAssociations) {
+    // console.log(updatedAssociations);
+    redisPublisher.publish("ekko-associations", updatedAssociations);
+    loggingMgr.logMessage("received updated jwt from CLI");
+    res.sendStatus(200);
+  } else {
+    res.status(400).send("Invalid JWT");
+  }
+  res.end();
 });
 
 server.listen(port, () => {
@@ -61,8 +120,3 @@ server.listen(port, () => {
 //     let activeSockets = await io.in(channel).allSockets();
 //     console.log("getAllSocketsInChannel: ", activeSockets);
 //   });
-
-// TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
-app.get("/", (req, res) => {
-  res.send("ekko-server"); // TODO: Should this endpoint render anything?
-});
