@@ -4,17 +4,14 @@ module.exports = (lambdaMgr, io, loggingMgr) => {
   };
 
   // PRIVATE
-
+  //publish message from client.  process messages
+  //through lambdas if specified in associations.json
   const publish = async (socket, params) => {
     let payload = { ...params };
     let { appName } = socket;
     let { channel, message } = params;
 
     const matchingLambdas = lambdaMgr.getMatchingLambdas(appName, channel);
-    loggingMgr.logEvent({
-      socket,
-      eventName: `matching_lambdas: ${matchingLambdas}`,
-    });
 
     if (matchingLambdas) {
       let updatedMessage = await lambdaMgr.processMessage({

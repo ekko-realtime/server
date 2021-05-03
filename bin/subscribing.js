@@ -1,5 +1,4 @@
 module.exports = (loggingMgr) => {
-
   const handleSubscribe = (socket, params) => {
     subscribeToChannels(socket, params);
   };
@@ -15,31 +14,73 @@ module.exports = (loggingMgr) => {
   };
 
   // PRIVATE
-
+  //subscribe to a list of channels passed in as params
   const subscribeToChannels = (socket, params) => {
     let { channels, withPresence } = params;
 
+    socket.ekkoChannels = socket.ekkoChannels || [];
+
     channels.forEach((channel) => {
       if (channel !== "admin" || socket.admin) {
-        socket.join(channel);
-        if (withPresence) {
-          socket.join(presenceChannel(channel));
-          loggingMgr.sendPresenceEvents("subscribe", socket, channel);
-        }
+        subscribeToChannel(socket, channel, withPresence);
       }
     });
   };
 
+  //unsubscribe from channels passed in as params
   const unsubscribeFromChannels = (socket, { channels }) => {
     channels.forEach((channel) => {
       unsubscribeFromChannel(socket, channel);
-      loggingMgr.sendPresenceEvents("unsubscribe", socket, channel);
+      loggingMgr.sendPresenceEvents(
+        "unsubscribe",
+        socket,
+        presenceChannel(channel)
+      );
     });
+  };
+
+  const presenceParams = (socket, eventName, channelObj) => {
+    let { channel, presenceChannel } = channelObj;
+    return {
+      eventName,
+      socket,
+      channel,
+      presenceChannel,
+    };
+  };
+
+  const subscribeToChannel = (socket, channel, withPresence) => {
+    socket.join(channel);
+
+    let ekkoChannel = { channel };
+
+    if (withPresence) {
+      ekkoChannel.presenceChannel = presenceChannel(channel);
+      socket.join(ekkoChannel.presenceChannel);
+      let params = presenceParams(socket, "joined", ekkoChannel);
+      loggingMgr.sendPresenceEvents(params);
+    }
+
+    socket.ekkoChannels.push(ekkoChannel);
   };
 
   const unsubscribeFromChannel = (socket, channel) => {
     socket.leave(channel);
-    socket.leave(presenceChannel(channel));
+
+    let ekkoChannel = socket.ekkoChannels.find((channelObj) => {
+      return channelObj.channel === channel;
+    });
+    let { presenceChannel } = ekkoChannel;
+
+    if (presenceChannel) {
+      socket.leave(presenceChannel);
+      let params = presenceParams(socket, "left", ekkoChannel);
+      loggingMgr.sendPresenceEvents(params);
+    }
+
+    socket.ekkoChannels = socket.ekkoChannels.filter((channelObj) => {
+      return channelObj !== ekkoChannel;
+    });
   };
 
   const presenceChannel = (channel) => {
