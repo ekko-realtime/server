@@ -16,6 +16,25 @@ Ekko server uses JWT authentication for all communication between client and ser
 
 On instance start up, Ekko server reads in configuration data from an S3 bucket for any lambdas that are intended to be used with specific websocket communication channels. This is passed in as an environment variable `S3_BUCKET`. Any updates to this configuration data are done via the Ekko CLI tool, which sends a `PUT` request to the `/associations` API endpoint, passing in `associations.json` as a JWT token.
 
+```
+//sample associations.json
+{
+  "applications": {
+    "app_1": {
+      "channels": [
+        { "channelName": "channel_1", "functionNames": ["capitalize"] },
+        { "channelName": "channel_2", "functionNames": ["reverse"] },
+        { "channelName": "channel_3", "functionNames": ["emphasize"] },
+        {
+          "channelName": "channel_4",
+          "functionNames": ["capitalize", "reverse", "emphasize"]
+        }
+      ]
+    }
+  }
+}
+```
+
 ### modifying ekko server
 
 This repo also includes a `Dockerfile` for making a docker image of the Ekko server. The Ekko deploy repo, used for deploying the entire Ekko framework to AWS via CDK code, uses a docker image made using this file. The location of the docker image is on AWS ECR [here](https://console.aws.amazon.com/ecr/repositories/public/779328198284/ekko_server?region=us-east-1).
