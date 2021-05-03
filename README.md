@@ -18,7 +18,7 @@ On instance start up, Ekko server reads in configuration data from an S3 bucket 
 
 ### modifying ekko server
 
-This repo also includes a `Dockerfile` for making a docker image of the Ekko server. The Ekko deploy repo, used for deploying the entire Ekko framework to AWS via CDK code, uses a docker image made using this file. The location of the docker image is on AWS ECR at `public.ecr.aws/s8v4g8o5/ekko_server:latest`.
+This repo also includes a `Dockerfile` for making a docker image of the Ekko server. The Ekko deploy repo, used for deploying the entire Ekko framework to AWS via CDK code, uses a docker image made using this file. The location of the docker image is on AWS ECR [here](https://console.aws.amazon.com/ecr/repositories/public/779328198284/ekko_server?region=us-east-1).
 
 If you wish to fork the Ekko server repo and modify, in order to deploy you will need to:
 
