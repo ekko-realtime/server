@@ -1,6 +1,6 @@
 # ekko server
 
-Ekko server is a websocket server and is used as part of the Ekko realtime service framework. It is designed to be used with the Ekko client. By default, Ekko server listens on `port 3000`, but that can be configured by setting the `PORT` environment variable.
+Ekko server is a websocket server and is used as part of the Ekko realtime service framework. It is designed to be used with the [Ekko client](https://github.com/ekko-live/client). By default, Ekko server listens on `port 3000`, but that can be configured by setting the `PORT` environment variable.
 
 # ekko server auto-scaling
 
