@@ -14,7 +14,7 @@ Ekko server uses JWT authentication for all communication between client and ser
 
 ### configuring ekko server for use with lambdas
 
-On instance start up, Ekko server reads in configuration data from an S3 bucket for any lambdas that are intended to be used with specific websocket communication channels. This is passed in as an environment variable `S3_BUCKET`. Any updates to this configuration data are done via the Ekko CLI tool, which sends a `PUT` request to the `/associations` API endpoint, passing in `associations.json` as a JWT token.
+On instance start up, Ekko server reads in configuration data from an S3 bucket for any lambdas that are intended to be used with specific websocket communication channels. This is passed in as an environment variable `S3_BUCKET`. Any updates to this configuration data are done via the [Ekko CLI](https://github.com/ekko-live/cli), which sends a `PUT` request to the `/associations` API endpoint, passing in `associations.json` as a JWT token.
 
 ```
 //sample associations.json
