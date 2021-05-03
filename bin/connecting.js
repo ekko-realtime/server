@@ -1,22 +1,25 @@
 module.exports = (loggingMgr) => {
-  console.log("connecting received loggingMgr", loggingMgr);
-
   const handleConnect = (socket) => {
-    loggingMgr.logEvent({ socket, eventName: "CONNECTED to ekko server" });
+    loggingMgr.logEvent({ socket, eventName: "connection" });
   };
 
   const handleDisconnect = (socket) => {
     socketDisconnect(socket);
-    loggingMgr.logEvent({ socket, eventName: "DISCONNECTED from ekko server" });
   };
 
   // PRIVATE
 
+  //disconnect from all channels
   const socketDisconnect = (socket) => {
-    // console.log("SOCKET", socket.rooms);
-    // TODO: This seems to always return a set(0)
-    socket.rooms.forEach((channel) => {
-      loggingMgr.logEvent({ socket, eventName: `LEFT "${channel}" channel` });
+    socket.ekkoChannels.forEach(({ channel, presenceChannel }) => {
+      if (presenceChannel) {
+        loggingMgr.sendPresenceEvents({
+          eventType: "left",
+          channel,
+          presenceChannel,
+          socket,
+        });
+      }
     });
   };
 
