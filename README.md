@@ -1,10 +1,27 @@
 # ekko server
 
-# TODO
+Ekko server is a websocket server and is used as part of the Ekko realtime service framework. It is designed to be used with the Ekko client. By default, Ekko server listens on `port 3000`, but that can be configured by setting the `PORT` environment variable.
 
-- setup handles for whatever message types happen from the front end classes
-- how to get this deployed to ec2? (which users/roles etc)
+# ekko server auto-scaling
 
-## Docker
-* Use `docker build --tag ekko-server .` to create docker image
-* Use `docker run -d -p 3000:3000 ekko-server` to run docker image in detached mode
+Ekko server is designed to scale and uses Redis for both node communication and syncing of websocket publishing to all clients connected to the running ekko service. This means you must have a running instance of Redis for full functionality. You can run ekko server in `DEV` mode by using `npm run dev`, which will run ekko server as a single node and bypass any functionality of communicating via Redis. By default, ekko server communicates with Redis on `port 6379` using "localhost", but this can be configured with the `REDIS_PORT` and `REDIS_HOST` environment variables.
+
+When deployed with the full Ekko framework, Ekko servers are run as Fargate tasks on Amazon ECS. See Ekko deploy repo for details.
+
+# authentication with ekko
+
+Ekko server uses JWT authentication for all communication between client and server. See Ekko client for details on setting up ekko client apps. Ekko server needs a secret key for decryption, which is passed in as an environment variable `SECRET_KEY`. When using the Ekko CLI for deployment, the CDK deploy script creates this key and passes it into the Ekko server instance. To run locally, you will need to provide your own.
+
+# configuring ekko server for use with lambdas
+
+On instance start up, Ekko server reads in configuration data from an S3 bucket for any lambdas that are intended to be used with specific websocket communication channels. This is passed in as an environment variable `S3_BUCKET`. Any updates to this configuration data are done via the Ekko CLI tool, which sends a `PUT` request to the `/associations` API endpoint, passing in `associations.json` as a JWT token.
+
+# modifying ekko server
+
+This repo also includes a `Dockerfile` for making a docker image of the Ekko server. The Ekko deploy repo, used for deploying the entire Ekko framework to AWS via CDK code, uses a docker image made using this file. The location of the docker image is on AWS ECR at `public.ecr.aws/s8v4g8o5/ekko_server:latest`.
+
+If you wish to fork the Ekko server repo and modify, in order to deploy you will need to:
+
+- recreate the docker image by running `docker built -t ekko-server` from the root of this directory.
+- upload docker image either to dockerhub or Amazon ECR (we used a public repository on ECR)
+- update the Ekko deploy repository to point to the new docker image

@@ -1,4 +1,8 @@
 require("dotenv").config();
+const DEV = "development";
+const PROD = "production";
+const TEST = "testing";
+
 const app = require("express")();
 const server = require("http").Server(app);
 const cors = require("cors");
@@ -12,7 +16,10 @@ const redisHost = process.env.REDIS_ENDPOINT || "localhost";
 const redisPort = process.env.REDIS_PORT || 6379;
 
 const io = socketio(server, { cors: { origin: "*" } });
-io.adapter(socketioRedis({ host: redisHost, port: redisPort }));
+if (process.env.NODE_ENV !== DEV) {
+  io.adapter(socketioRedis({ host: redisHost, port: redisPort }));
+}
+
 const ekkoApps = io.of(/.*/);
 
 // Managers2
@@ -33,13 +40,9 @@ const {
   handleAssociationsDecoding,
 } = require("./bin/authorizing");
 
-const {
-  handleConnect,
-  handleDisconnect,
-  handleGetAllConnections,
-  handleGetAllActiveChannels,
-  handleGetAllSocketsInChannel,
-} = require("./bin/connecting")(loggingMgr, io);
+const { handleConnect, handleDisconnect } = require("./bin/connecting")(
+  loggingMgr
+);
 
 const {
   handleSubscribe,
@@ -68,26 +71,22 @@ ekkoApps.on("connection", (socket) => {
   socket.on("subscribe", (params) => handleSubscribe(socket, params));
   socket.on("unsubscribe", (params) => handleUnsubscribe(socket, params));
   socket.on("publish", (params) => handlePublish(socket, params));
-  socket.on("getAllConnections", (params) =>
-    handleGetAllConnections(io, params)
-  );
-  socket.on("getAllActiveChannels", (params) =>
-    handleGetAllActiveChannels(io, params)
-  );
-  socket.on("getAllSocketsInChannel", (params) =>
-    handleGetAllSocketsInChannel(io, params)
-  );
 });
 
 // Update Associations
-const redisSubscriber = redis.createClient(redisPort, redisHost);
-const redisPublisher = redis.createClient(redisPort, redisHost);
-redisSubscriber.subscribe("ekko-associations");
-redisSubscriber.on("message", (channel, stringData) => {
-  // UPDATE IN MEMORY ASSOCIATION STUFF
-  loggingMgr.logMessage("received redis update for ekko server");
-  associationsMgr.updateData(stringData);
-});
+let redisSubscriber, redisPublisher;
+
+if (process.env.NODE_ENV !== DEV) {
+  redisSubscriber = redis.createClient(redisPort, redisHost);
+  redisPublisher = redis.createClient(redisPort, redisHost);
+
+  redisSubscriber.subscribe("ekko-associations");
+  redisSubscriber.on("message", (channel, updatedAssociations) => {
+    // UPDATE IN MEMORY ASSOCIATION STUFF
+    loggingMgr.logMessage("received redis update for ekko server");
+    associationsMgr.updateData(updatedAssociations);
+  });
+}
 
 app.get("/", (req, res) => {
   res.send("ekko-server");
@@ -98,7 +97,12 @@ app.put("/associations", (req, res) => {
   loggingMgr.logMessage("received put request");
 
   if (updatedAssociations) {
-    redisPublisher.publish("ekko-associations", updatedAssociations);
+    if (process.env.NODE_ENV !== DEV) {
+      redisPublisher.publish("ekko-associations", updatedAssociations);
+    } else {
+      associationsMgr.updatedAssociations(updatedAssociations);
+    }
+
     loggingMgr.logMessage("received updated jwt from CLI");
     res.sendStatus(200);
   } else {
@@ -111,22 +115,5 @@ app.put("/associations", (req, res) => {
 server.listen(port, () => {
   const message = `Server: ekko server started on port ${port}`;
   const line = new Array(message.length).fill("-").join("");
+  console.log(message, `\n`, line);
 });
-
-// TODO: !!! CAN GO INTO ekkoApps.on("connection") IF WE ADD FUNCTIONALITY TO CLIENT
-//   socket.on("unsubscribeAll", () => {
-//     unsubscribeToChannels(socket, socket.rooms);
-//   });
-
-//   socket.on("getAllConnections", async ({ channel }) => {
-//     let activeSockets = await io.of("/").adapter.sockets(new Set());
-//     console.log("getAllConnections: ", activeSockets);
-//   });
-//   socket.on("getAllActiveChannels", async ({ channel }) => {
-//     let rooms = await io.of("/").adapter.allRooms();
-//     console.log("getAllActiveChannels: ", rooms);
-//   });
-//   socket.on("getAllSocketsInChannel", async ({ channel }) => {
-//     let activeSockets = await io.in(channel).allSockets();
-//     console.log("getAllSocketsInChannel: ", activeSockets);
-//   });
