@@ -6,11 +6,11 @@ Ekko server is a websocket server and is used as part of the Ekko realtime servi
 
 Ekko server is designed to scale and uses Redis for both internode communication and syncing of websocket publishing to all clients connected to the running ekko service. This means you must have a running instance of Redis for full functionality. You can run Ekko server in `DEV` mode by using `npm run dev`, which will run Ekko server as a single node and bypass any functionality for ommunicating via Redis. By default, Ekko server communicates with Redis on `port 6379` using `localhost`, but this can be configured with the `REDIS_PORT` and `REDIS_HOST` environment variables.
 
-When deployed with the full Ekko framework, Ekko servers are run as Fargate tasks on Amazon ECS. See Ekko deploy repo for details.
+When deployed with the full Ekko framework, Ekko servers are run as Fargate tasks on Amazon ECS. See [Ekko deploy](https://github.com/ekko-live/deploy) repo for details.
 
 # authentication with ekko
 
-Ekko server uses JWT authentication for all communication between client and server. See Ekko client for details on setting up ekko client apps. Ekko server needs a secret key for decryption, which is passed in as an environment variable `SECRET_KEY`. When using the Ekko CLI for deployment, the CDK deploy script creates this key and passes it into the Ekko server instance. To run locally, you will need to provide your own.
+Ekko server uses JWT authentication for all communication between client and server. See [Ekko client](https://github.com/ekko-live/client) for details on setting up Ekko client apps. Ekko server needs a secret key for decryption, which is passed in as an environment variable `SECRET_KEY`. When using the [Ekko CLI](https://github.com/ekko-live/cli) for deployment, the CDK [`deploy-stack.js`](https://github.com/ekko-live/deploy/blob/main/lib/deploy-stack.js) script creates this key and passes it into the Ekko server instance. To run locally, you will need to provide your own.
 
 # configuring ekko server for use with lambdas
 
