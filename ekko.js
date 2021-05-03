@@ -33,10 +33,13 @@ const {
   handleAssociationsDecoding,
 } = require("./bin/authorizing");
 
-const { handleConnect, handleDisconnect } = require("./bin/connecting")(
-  loggingMgr,
-  io
-);
+const {
+  handleConnect,
+  handleDisconnect,
+  handleGetAllConnections,
+  handleGetAllActiveChannels,
+  handleGetAllSocketsInChannel,
+} = require("./bin/connecting")(loggingMgr, io);
 
 const {
   handleSubscribe,
@@ -65,6 +68,15 @@ ekkoApps.on("connection", (socket) => {
   socket.on("subscribe", (params) => handleSubscribe(socket, params));
   socket.on("unsubscribe", (params) => handleUnsubscribe(socket, params));
   socket.on("publish", (params) => handlePublish(socket, params));
+  socket.on("getAllConnections", (params) =>
+    handleGetAllConnections(io, params)
+  );
+  socket.on("getAllActiveChannels", (params) =>
+    handleGetAllActiveChannels(io, params)
+  );
+  socket.on("getAllSocketsInChannel", (params) =>
+    handleGetAllSocketsInChannel(io, params)
+  );
 });
 
 // Update Associations
@@ -73,34 +85,32 @@ const redisPublisher = redis.createClient(redisPort, redisHost);
 redisSubscriber.subscribe("ekko-associations");
 redisSubscriber.on("message", (channel, stringData) => {
   // UPDATE IN MEMORY ASSOCIATION STUFF
-  console.log(channel, stringData);
   loggingMgr.logMessage("received redis update for ekko server");
   associationsMgr.updateData(stringData);
 });
 
-// TODO: !!! CAN ADD IF WE WANT TO BE ABLE TO SEE THAT SERVER IS RUNNING
 app.get("/", (req, res) => {
-  res.send("ekko-server"); // TODO: Should this endpoint render anything?
+  res.send("ekko-server");
 });
 
 app.put("/associations", (req, res) => {
   const updatedAssociations = handleAssociationsDecoding(req.body.token);
   loggingMgr.logMessage("received put request");
+
   if (updatedAssociations) {
-    // console.log(updatedAssociations);
     redisPublisher.publish("ekko-associations", updatedAssociations);
     loggingMgr.logMessage("received updated jwt from CLI");
     res.sendStatus(200);
   } else {
     res.status(400).send("Invalid JWT");
   }
+
   res.end();
 });
 
 server.listen(port, () => {
   const message = `Server: ekko server started on port ${port}`;
   const line = new Array(message.length).fill("-").join("");
-  console.log(`${line}\n${message}\n${line}`);
 });
 
 // TODO: !!! CAN GO INTO ekkoApps.on("connection") IF WE ADD FUNCTIONALITY TO CLIENT
