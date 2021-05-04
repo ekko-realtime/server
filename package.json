@@ -8,7 +8,6 @@
     "test": "tap",
     "dev": "NODE_ENV=development node ekko.js"
   },
-  "author": "",
   "license": "ISC",
   "dependencies": {
     "aws-sdk": "^2.885.0",
@@ -22,5 +21,24 @@
   },
   "devDependencies": {
     "tap": "^15.0.6"
-  }
+  },
+  "author": "ekko",
+  "contributors": [
+    {
+      "name": "Alex Strick van Linschoten",
+      "github": "<https://github.com/strickvl>"
+    },
+    {
+      "name": "Dorey Miller",
+      "github": "<https://github.com/doreymiller>"
+    },
+    {
+      "name": "Drew Holbrook",
+      "github": "<https://github.com/dpholbrook>"
+    },
+    {
+      "name": "Will Lotherington",
+      "github": "<https://github.com/wLotherington>"
+    }
+  ]
 }
