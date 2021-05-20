@@ -11,16 +11,18 @@ module.exports = (loggingMgr) => {
 
   //disconnect from all channels
   const socketDisconnect = (socket) => {
-    socket.ekkoChannels.forEach(({ channel, presenceChannel }) => {
-      if (presenceChannel) {
-        loggingMgr.sendPresenceEvents({
-          eventType: "left",
-          channel,
-          presenceChannel,
-          socket,
-        });
-      }
-    });
+    if (socket.ekkoChannels) {
+      socket.ekkoChannels.forEach(({ channel, presenceChannel }) => {
+        if (presenceChannel) {
+          loggingMgr.sendPresenceEvents({
+            eventType: "left",
+            channel,
+            presenceChannel,
+            socket,
+          });
+        }
+      });
+    }
   };
 
   return {
