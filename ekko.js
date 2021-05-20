@@ -40,15 +40,11 @@ const {
   handleAssociationsDecoding,
 } = require("./bin/authorizing");
 
-const { handleConnect, handleDisconnect } = require("./bin/connecting")(
-  loggingMgr
-);
+const { handleConnect, handleDisconnect } =
+  require("./bin/connecting")(loggingMgr);
 
-const {
-  handleSubscribe,
-  handleUnsubscribe,
-  handleAdminSubscribe,
-} = require("./bin/subscribing")(loggingMgr, io);
+const { handleSubscribe, handleUnsubscribe, handleAdminSubscribe } =
+  require("./bin/subscribing")(loggingMgr, io);
 
 const { handlePublish } = require("./bin/publishing")(
   lambdaMgr,
@@ -64,7 +60,6 @@ app.use(express.json());
 
 // Handle connected socket events
 ekkoApps.on("connection", (socket) => {
-  loggingMgr.logEvent({ socket, eventName: "connection" });
   handleConnect(socket);
   handleAdminSubscribe(socket);
   socket.on("disconnect", () => handleDisconnect(socket));
@@ -73,7 +68,8 @@ ekkoApps.on("connection", (socket) => {
   socket.on("publish", (params) => handlePublish(socket, params));
 });
 
-// Update Associations
+// Set up ekko server as redis publisher and subscriber
+// to both send and receive updated associations data
 let redisSubscriber, redisPublisher;
 
 if (process.env.NODE_ENV !== DEV) {
@@ -82,28 +78,27 @@ if (process.env.NODE_ENV !== DEV) {
 
   redisSubscriber.subscribe("ekko-associations");
   redisSubscriber.on("message", (channel, updatedAssociations) => {
-    // UPDATE IN MEMORY ASSOCIATION STUFF
-    loggingMgr.logMessage("received redis update for ekko server");
-    associationsMgr.updateData(updatedAssociations);
+    associationsMgr.handleUpdateAssociations(updatedAssociations);
   });
 }
 
+//server response for GET request of endpoint
 app.get("/", (req, res) => {
   res.send("ekko-server");
 });
 
+//Ekko CLI sends JWT for new associations data
+//publish to "ekko-associations" so all server nodes receive updated data
 app.put("/associations", (req, res) => {
   const updatedAssociations = handleAssociationsDecoding(req.body.token);
-  loggingMgr.logMessage("received put request");
 
   if (updatedAssociations) {
     if (process.env.NODE_ENV !== DEV) {
       redisPublisher.publish("ekko-associations", updatedAssociations);
     } else {
-      associationsMgr.updatedAssociations(updatedAssociations);
+      associationsMgr.handleUpdateAssociations(updatedAssociations);
     }
 
-    loggingMgr.logMessage("received updated jwt from CLI");
     res.sendStatus(200);
   } else {
     res.status(400).send("Invalid JWT");

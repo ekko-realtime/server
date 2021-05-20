@@ -39,6 +39,7 @@ module.exports = (loggingMgr) => {
     });
   };
 
+  //parameters for sending presence events
   const presenceParams = (socket, eventName, channelObj) => {
     let { channel, presenceChannel } = channelObj;
     return {
@@ -49,11 +50,13 @@ module.exports = (loggingMgr) => {
     };
   };
 
+  //subscribe to a specific channel
   const subscribeToChannel = (socket, channel, withPresence) => {
     socket.join(channel);
 
     let ekkoChannel = { channel };
 
+    //join the presence channel
     if (withPresence) {
       ekkoChannel.presenceChannel = presenceChannel(channel);
       socket.join(ekkoChannel.presenceChannel);
@@ -64,6 +67,7 @@ module.exports = (loggingMgr) => {
     socket.ekkoChannels.push(ekkoChannel);
   };
 
+  //unsubscribe from specific channel
   const unsubscribeFromChannel = (socket, channel) => {
     socket.leave(channel);
 
@@ -72,6 +76,7 @@ module.exports = (loggingMgr) => {
     });
     let { presenceChannel } = ekkoChannel;
 
+    //leave presence channel
     if (presenceChannel) {
       socket.leave(presenceChannel);
       let params = presenceParams(socket, "left", ekkoChannel);
