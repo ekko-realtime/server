@@ -12,11 +12,11 @@ Ekko server is designed to scale and uses Redis for both internode communication
 
 When deployed with the full Ekko framework, Ekko servers are run as Fargate tasks on Amazon ECS. See the [Ekko deployment](https://github.com/ekko-live/deploy) repository for details.
 
-## Authentication with ekko
+## Authentication with Ekko
 
 Ekko server uses JWT authentication for all communication between client and server. See [Ekko client](https://github.com/ekko-live/client) for details on setting up Ekko client apps. Ekko server needs a secret key for decryption, which is passed in as an environment variable `SECRET_KEY`. When using the [Ekko CLI](https://github.com/ekko-live/cli) for deployment, the CDK [`deploy-stack.js`](https://github.com/ekko-live/deploy/blob/main/lib/deploy-stack.js) script creates this key and passes it into the Ekko server instance. To run locally, you will need to provide your own.
 
-## Configuring ekko server for use with lambdas
+## Configuring Ekko server for use with lambdas
 
 
 On instance start up, Ekko server reads in configuration data from an S3 bucket for any AWS Lambda functions that are intended to be used with specific websocket communication channels. This is passed in as an environment variable `S3_BUCKET`. Any updates to this configuration data are done via the [Ekko CLI tool](https://github.com/ekko-live/cli), which sends a `PUT` request to the `/associations` API endpoint, passing in `associations.json` as a JWT token.
@@ -41,7 +41,7 @@ On instance start up, Ekko server reads in configuration data from an S3 bucket 
 ```
 
 
-## Modifying ekko server
+## Modifying Ekko server
 
 
 This repository also includes a `Dockerfile` for making a Docker image of the Ekko server. The Ekko deploy repository, used for deploying the entire Ekko framework to AWS via CDK code, uses a Docker image made using this file. The location of the Docker image is on AWS' Elastic Container Repository (ECR) [here](https://console.aws.amazon.com/ecr/repositories/public/779328198284/ekko_server?region=us-east-1) (`public.ecr.aws/s8v4g8o5/ekko_server:latest`).
