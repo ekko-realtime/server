@@ -8,7 +8,13 @@ If you wish to deploy this server as part of the full Ekko stack, either do so m
 
 ## Ekko server auto-scaling
 
-Ekko server is designed to scale and uses Redis for both internode communication and syncing of websocket publishing to all clients connected to the running Ekko service. This means you must have a running instance of Redis for full functionality. You can run Ekko server in `DEV` mode by using `npm run dev`, which will run Ekko server as a single node and bypass any functionality for communicating via Redis. By default, Ekko server communicates with Redis on port 6379 using `localhost`, but this can be configured with the `REDIS_PORT` and `REDIS_HOST` environment variables.
+Ekko server is designed to scale and uses Redis for both internode communication and syncing of websocket publishing to all clients connected to the running Ekko service. This means you must have a running instance of Redis for full functionality. 
+
+You can run Ekko server in `DEV` mode by using:
+
+```npm run dev```
+
+in the comamand line, which will run Ekko server as a single node and bypass any functionality for communicating via Redis. By default, Ekko server communicates with Redis on port 6379 using `localhost`, but this can be configured with the `REDIS_PORT` and `REDIS_HOST` environment variables.
 
 When deployed with the full Ekko framework, Ekko servers are run as Fargate tasks on Amazon ECS. See the [Ekko deployment](https://github.com/ekko-realtime/deploy) repository for details.
 
