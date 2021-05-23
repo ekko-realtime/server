@@ -14,10 +14,12 @@ const handleAddParamsToSocket = (socket, next) => {
   next();
 };
 
-const handleAssociationsDecoding = (token) => {
-  console.log("token: ", token);
+const handleAssociationsDecoding = (payload) => {
+  let { token, secretKey } = payload;
+  secretKey = secretKey || secret;
+
   try {
-    const associations = jwt.verify(token, secret);
+    const associations = jwt.verify(token, secretKey);
     return JSON.stringify(associations);
   } catch (error) {
     console.error(error);

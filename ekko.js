@@ -16,7 +16,7 @@ const redisHost = process.env.REDIS_ENDPOINT || "localhost";
 const redisPort = process.env.REDIS_PORT || 6379;
 
 const io = socketio(server, { cors: { origin: "*" } });
-if (process.env.NODE_ENV !== DEV) {
+if (process.env.NODE_ENV !== DEV && process.env.NODE_ENV !== TEST) {
   io.adapter(socketioRedis({ host: redisHost, port: redisPort }));
 }
 
@@ -84,16 +84,17 @@ if (process.env.NODE_ENV !== DEV) {
 
 //server response for GET request of endpoint
 app.get("/", (req, res) => {
-  res.send("ekko-server");
+  res.status(200).send("ekko-server");
 });
 
 //Ekko CLI sends JWT for new associations data
 //publish to "ekko-associations" so all server nodes receive updated data
 app.put("/associations", (req, res) => {
-  const updatedAssociations = handleAssociationsDecoding(req.body.token);
+  console.log("req.body", req.body);
+  const updatedAssociations = handleAssociationsDecoding(req.body);
 
   if (updatedAssociations) {
-    if (process.env.NODE_ENV !== DEV) {
+    if (process.env.NODE_ENV !== DEV && process.env.NODE_ENV !== TEST) {
       redisPublisher.publish("ekko-associations", updatedAssociations);
     } else {
       associationsMgr.handleUpdateAssociations(updatedAssociations);
@@ -107,8 +108,12 @@ app.put("/associations", (req, res) => {
   res.end();
 });
 
-server.listen(port, () => {
-  const message = `Server: ekko server started on port ${port}`;
-  const line = new Array(message.length).fill("-").join("");
-  console.log(message, `\n`, line);
-});
+if (process.env.NODE_ENV !== TEST) {
+  server.listen(port, () => {
+    const message = `Server: ekko server started on port ${port}`;
+    const line = new Array(message.length).fill("-").join("");
+    console.log(message, `\n`, line);
+  });
+}
+
+module.exports = app;
