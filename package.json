@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node ekko.js",
-    "test": "tap",
+    "test": "tap --no-cov",
     "dev": "NODE_ENV=development node ekko.js"
   },
   "license": "ISC",
